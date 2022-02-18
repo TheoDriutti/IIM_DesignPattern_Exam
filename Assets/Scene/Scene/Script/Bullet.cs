@@ -37,14 +37,16 @@ public class Bullet : MonoBehaviour
         if (Time.fixedTime < LaunchTime + _collisionCooldown) return;
 
         collision.GetComponent<IHealth>()?.TakeDamage(Power);
-        Destroy(gameObject);
+        gameObject.SetActive(false);
+        transform.position = BulletPool.Instance.transform.position;
     }
     private void OnCollisionEnter2D(Collision2D collision)
     {
         if (Time.fixedTime < LaunchTime + _collisionCooldown) return;
 
         collision.collider.GetComponent<IHealth>()?.TakeDamage(Power);
-        Destroy(gameObject);
+        gameObject.SetActive(false);
+        transform.position = BulletPool.Instance.transform.position;
     }
 
     private void Health_OnDamage(int arg0)

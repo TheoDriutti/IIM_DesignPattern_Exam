@@ -5,15 +5,38 @@ using UnityEngine;
 
 public class BulletPool : MonoBehaviour
 {
-    // Start is called before the first frame update
-    void Start()
-    {
+    [SerializeField] private int poolSize;
+    [SerializeField] private Bullet _bulletPrefab;
 
+    private static BulletPool _instance;
+    public static BulletPool Instance
+    {
+        get { return _instance; }
     }
 
-    // Update is called once per frame
-    void Update()
+    private List<Bullet> pool;
+
+    void Awake()
     {
-        
+        _instance  = this;
+
+        pool = new List<Bullet>();
+        for (int i = 0; i < poolSize; i++)
+        {
+            var bullet = Instantiate(_bulletPrefab, transform.position, Quaternion.identity, null);
+            bullet.gameObject.SetActive(false);
+            pool.Add(bullet);
+        }
     }
+
+    public Bullet GetBulletFromPool()
+    {
+        Bullet bulletFromPool = pool[Random.Range(0, poolSize)];
+        while (bulletFromPool.gameObject.activeInHierarchy)
+        {
+            bulletFromPool = pool[Random.Range(0, poolSize)];
+        }
+
+        return bulletFromPool;
+    } 
 }

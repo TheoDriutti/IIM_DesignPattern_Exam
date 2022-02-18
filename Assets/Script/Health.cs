@@ -4,6 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.SceneManagement;
 
 public class Health : MonoBehaviour, IHealth
 {
@@ -16,11 +17,18 @@ public class Health : MonoBehaviour, IHealth
     public int CurrentHealth { get; private set; }
     public int MaxHealth => _maxHealth;
     public bool IsDead => CurrentHealth <= 0;
+    public bool IsShielded { get; private set; }
 
     // Events
     public event UnityAction OnSpawn;
     public event UnityAction<int> OnDamage;
-    public event UnityAction OnDeath { add => _onDeath.AddListener(value); remove => _onDeath.RemoveListener(value); }
+    public event UnityAction<int> OnHeal;
+
+    public event UnityAction OnDeath
+    {
+        add => _onDeath.AddListener(value);
+        remove => _onDeath.RemoveListener(value);
+    }
 
     // Methods
     void Awake() => Init();
@@ -33,18 +41,35 @@ public class Health : MonoBehaviour, IHealth
 
     public void TakeDamage(int amount)
     {
-        if (amount < 0) throw new ArgumentException($"Argument amount {nameof(amount)} is negativ");
+        if (amount < 0) throw new ArgumentException($"Argument amount {nameof(amount)} is negative");
+        
+        if (!IsShielded)
+        {
+            var tmp = CurrentHealth;
+            CurrentHealth = Mathf.Max(0, CurrentHealth - amount);
+            var delta = CurrentHealth - tmp;
+            OnDamage?.Invoke(delta);
+
+            if (CurrentHealth <= 0)
+            {
+                _onDeath?.Invoke();
+            }
+        }
+    }
+
+    public void Heal(int amount)
+    {
+        if (amount < 0) throw new ArgumentException($"Argument amount {nameof(amount)} is negative");
 
         var tmp = CurrentHealth;
-        CurrentHealth = Mathf.Max(0, CurrentHealth - amount);
+        CurrentHealth = Mathf.Min(MaxHealth, CurrentHealth + amount);
         var delta = CurrentHealth - tmp;
-        OnDamage?.Invoke(delta);
+        OnHeal?.Invoke(amount);
+    }
 
-        if(CurrentHealth <= 0)
-        {
-            _onDeath?.Invoke();
-        }
-
+    public void SetShield(bool val)
+    {
+        IsShielded = val;
     }
 
     [Button("test")]
@@ -52,7 +77,7 @@ public class Health : MonoBehaviour, IHealth
     {
         var enumerator = MesIntPrefere();
 
-        while(enumerator.MoveNext())
+        while (enumerator.MoveNext())
         {
             Debug.Log(enumerator.Current);
         }
@@ -63,7 +88,6 @@ public class Health : MonoBehaviour, IHealth
 
     IEnumerator<int> MesIntPrefere()
     {
-
         //
 
         var age = 12;
@@ -81,13 +105,7 @@ public class Health : MonoBehaviour, IHealth
         yield return 0;
 
 
-
         //
         yield break;
     }
-
-
-
-
-
 }

@@ -10,10 +10,12 @@ public class PlayerInputDispatcher : MonoBehaviour
 
     [SerializeField] EntityMovement _movement;
     [SerializeField] EntityFire _fire;
+    [SerializeField] EntityShield _shield;
 
     [SerializeField] InputActionReference _pointerPosition;
     [SerializeField] InputActionReference _moveJoystick;
     [SerializeField] InputActionReference _fireButton;
+    [SerializeField] InputActionReference _shieldButton;
 
     Coroutine MovementTracking { get; set; }
 
@@ -23,7 +25,8 @@ public class PlayerInputDispatcher : MonoBehaviour
     {
         // binding
         _fireButton.action.started += FireInput;
-
+        _shieldButton.action.started += ShieldInput;
+        _shieldButton.action.canceled += ShieldInputCancel;
         _moveJoystick.action.started += MoveInput;
         _moveJoystick.action.canceled += MoveInputCancel;
     }
@@ -67,6 +70,20 @@ public class PlayerInputDispatcher : MonoBehaviour
         {
             _fire.FireBullet(2);
         }
+    }
+
+    private void ShieldInput(InputAction.CallbackContext obj)
+    {
+        float shield = obj.ReadValue<float>();
+        if(shield == 1)
+        {
+            _shield.ToggleShield(true);
+        }
+    }
+
+    private void ShieldInputCancel(InputAction.CallbackContext obj)
+    {
+        _shield.ToggleShield(false);
     }
 
 }
